@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 //import 'package:flutter_sms/flutter_sms.dart';
 import 'package:sms/sms.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wifi_configuration/wifi_configuration.dart';
 
 class SmsSenderScreen extends StatefulWidget {
   SmsSenderScreen({Key key}) : super(key: key);
@@ -56,6 +57,58 @@ class _SmsSenderScreenState extends State<SmsSenderScreen> {
     sender.sendSms(message, simCard: card);
   }
 
+  _wifiConnection() async {
+    // String ssid = await Wifi.ssid;
+    // int level = await Wifi.level;
+    // String ip = await Wifi.ip;
+    String ssid = 'Dung@';
+    String password = '11111111';
+    //final notification = await WifiConfiguration.connectedToWifi();
+    final status  =await WifiConfiguration.connectToWifi(ssid, password, "com.example.mommy_app");
+    String notification;
+    switch (status) {
+
+      case WifiConnectionStatus.connected:
+        notification = 'Đã kết nối wifi';
+        break;
+
+      case WifiConnectionStatus.alreadyConnected:
+        notification = 'Wifi được kết nối rồi';
+      break;
+
+      case WifiConnectionStatus.platformNotSupported:
+        notification = 'Nền tảng không được hỗ trợ';
+      break;
+
+      case WifiConnectionStatus.notConnected:
+        notification = 'Wifi không được kết nối';
+      break;
+      case WifiConnectionStatus.profileAlreadyInstalled:
+      break;
+      case WifiConnectionStatus.locationNotAllowed:
+      break;
+
+    }
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: Text('Thông báo'),
+              content: Text(notification),
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    size: 60,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ));
+    //});
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -82,41 +135,12 @@ class _SmsSenderScreenState extends State<SmsSenderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    //TODO
     final numberFieldController = TextEditingController();
     print(_recipient);
     return Scaffold(
         resizeToAvoidBottomPadding: false,
-        appBar: AppBar(
-          title: Text('Nhắn cá thác lác cho bà ngoại bé Na'),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.edit),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => SingleChildScrollView(
-                    child: SimpleDialog(
-                      children: <Widget>[
-                        TextField(
-                          controller: numberFieldController,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.all(10),
-                            hintText: 'Nhập vào số điện thoại cần thay đổi',
-                          ),
-                          onSubmitted: (_) {
-                            Navigator.of(context).pop();
-                            _changeRecipent(numberFieldController.text);
-                          },
-                          keyboardType: TextInputType.number,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            )
-          ],
-        ),
+        appBar: buildAppBar(context, numberFieldController),
         body: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -127,10 +151,51 @@ class _SmsSenderScreenState extends State<SmsSenderScreen> {
               _buidButton(context, 20),
               _buidButton(context, 25),
               _buidButton(context, 30),
-              _buidButton(context, 35)
+              _buidButton(context, 35),
+              RaisedButton(
+                child: Text('Karaoke'),
+                onPressed: () {
+                  _wifiConnection();
+                },
+              )
             ],
           ),
         ));
+  }
+
+  AppBar buildAppBar(
+      BuildContext context, TextEditingController numberFieldController) {
+    return AppBar(
+      title: Text('Nhắn cá thác lác cho bà ngoại bé Na'),
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.edit),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (ctx) => SingleChildScrollView(
+                child: SimpleDialog(
+                  children: <Widget>[
+                    TextField(
+                      controller: numberFieldController,
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.all(10),
+                        hintText: 'Nhập vào số điện thoại cần thay đổi',
+                      ),
+                      onSubmitted: (_) {
+                        Navigator.of(context).pop();
+                        _changeRecipent(numberFieldController.text);
+                      },
+                      keyboardType: TextInputType.number,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        )
+      ],
+    );
   }
 
   Widget _buidButton(BuildContext context, int kg) {
